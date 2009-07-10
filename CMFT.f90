@@ -17,7 +17,7 @@ double precision, parameter::ws=.1/1000,dp=0.001,teta_dep=.1  !settling velocity
 !vegetation parameters
 double precision, parameter::hmax=.9,hmin=.1,dh=hmax-hmin,B_max=2000,K_veg=5  !vegetation increasing effect on critical shear stress
 double precision,parameter::k_b=0.009/12/30/24 !organogenic sedimentation rate [m/h]
-double precision,parameter::att=0.4 !wave attenuation [%]
+double precision,parameter::att=0.03 !wave attenuation [%]
 !tide setting
 double precision, parameter:: h_tide=2,ho=0 !tide amplitude [m], mean sea level [m]
 !wind setting
@@ -29,7 +29,7 @@ double precision,parameter:: Ccost=.01![g/l]                               !USE 
 double precision, parameter:: RSLR=0*0.005 !relative sea level rise [m/year]  !USE THIS AS CONTROL PARAMETER
 !space and time structure
 double precision,parameter::dx=0.1, dxC=2, dt=0.5 ![m],[m],[h]
-integer, parameter:: cell=5000,cellS=floor(cell*dx/dxC),tmax=100000000! bottom cell size, water cell cell size, max # iter
+integer, parameter:: cell=5000,cellS=floor(cell*dx/dxC),tmax=10000! bottom cell size, water cell cell size, max # iter
 
 
 !model variables
@@ -81,7 +81,7 @@ tempo=tempo+dt/24  ! [day], cumulative time
 	if (mod(tt,24*30+1)==0) call output(tempo,dx,h,zg,cell)
 			
 end do
-  
+  call outputfinal(tempo,dx,h,zg,cell)
 CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -215,7 +215,7 @@ integer:: j
 		end do
 		k=2*pi/L(j) 	
 		sigma=2*pi/T
-		cg=0.5*(1+2*k*y(j)/sinh(k*y(j)))*L(j)/T  !group velocity
+		cg=L(j)/T*0.5*(1+2*k*y(j)/sinh(2*k*y(j)))  !group velocity
 		H=sqrt(E(j)*8/rhow/g)
 		Swg=80*(0.001*rhoa/rhow/g/k)**2*sigma*U**4 + E(j)*5*rhoa/rhow/T*(U/L(j)*T-0.9)
 		Sbf=-4*0.015*pi*H/T*k/sinh(k*y(j))/sinh(2*k*y(j))*E(j)
@@ -234,7 +234,7 @@ integer:: j
 		E(j)=E(j)+(Swg+Sbf+Swc+Sbrk)/cg*dx*lengthdx  !wave propagate to the next cell
 		!controls
 		if (E(j)<0) E(j)=0.    !no wave less than zero
-		if (B(j)>0)	E(j)=(1-att*B(j)*dx)*E(j)  !attenuation from the vegetation 
+		if (B(j)>0)	E(j)=((1-att*B(j)*dx)*sqrt(E(j)))**2  !attenuation from the vegetation 
 		if (sqrt(E(j)*8/rhow/g)>0.78*(y(j))) E(j)=(0.78*y(j))**2/8*rhow*g !breaking if wave too high
 end subroutine
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -474,6 +474,21 @@ double precision:: zg(cell),h
 integer:: i
 
 open (unit=2,file="zg.dat",status="replace")
+do i=1,cell
+write(2,*) i*dx,zg(i)
+end do
+close(2)
+
+
+end subroutine
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine outputfinal(tempo,dx,h,zg,cell)
+double precision:: dx,tempo
+integer::cell
+double precision:: zg(cell),h
+integer:: i
+
+open (unit=2,file="zgfinal.dat",status="replace")
 do i=1,cell
 write(2,*) i*dx,zg(i)
 end do
