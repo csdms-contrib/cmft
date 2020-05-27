@@ -246,7 +246,7 @@ integer:: j
 		E(j)=E(j)+(Swg+Sbf+Swc+Sbrk)/cg*dx*lengthdx  !wave propagate to the next cell
 		!controls
 		if (E(j)<0) E(j)=0.    !no wave less than zero
-		if (B(j)>0)	E(j)=((1-att*B(j)*dx)*sqrt(E(j)))  !attenuation from the vegetation 
+		if (B(j)>0)	E(j)=((1-att*B(j)*dx)*sqrt(E(j)))**2  !attenuation from the vegetation 
 		if (sqrt(E(j)*8/rhow/g)>0.78*(y(j))) E(j)=(0.78*y(j))**2/8*rhow*g !breaking if wave too high
 end subroutine
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
